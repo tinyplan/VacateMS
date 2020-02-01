@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.finalwork.mapper.TutorMapper">
+    <select id="getAuditCount" parameterType="String" resultType="Integer">
+        select count(*)
+        from tutor_vacate
+        where tutor_id = #{userId} and status = 0
+    </select>
+    <select id="findTutorById" parameterType="String" resultType="com.finalwork.po.Tutor">
+        select tutor_id as id, name, pwd as password, edu_id
+        from tutor
+        where tutor_id = #{id}
+    </select>
+    <select id="findGradeById" parameterType="String" resultType="com.finalwork.po.Grade">
+        select grade_id, tutor_id
+        from grade
+        where tutor_id = #{id}
+    </select>
+    <resultMap id="vacateVOMap" type="com.finalwork.po.VacateVO">
+        <id property="vacate.vacate_id" column="vacate_id"/>
+        <result property="vacate.stu_id" column="stu_id"/>
+        <result property="vacate.term" column="term"/>
+        <result property="vacate.submit_time" column="submit_time"/>
+        <result property="vacate.start_time" column="start_time"/>
+        <result property="vacate.end_time" column="end_time"/>
+        <result property="vacate.period" column="period"/>
+        <result property="vacate.type" column="type"/>
+        <result property="vacate.result" column="result"/>
+        <result property="vacate.course_list" column="course_list"/>
+    </resultMap>
+    <select id="searchVacateByTerm" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join tutor_vacate as t on t.vacate_id = v.vacate_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where tutor_id = #{userId} and term = #{term}
+    </select>
+    <select id="searchVacateByPeriod" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join tutor_vacate as t on t.vacate_id = v.vacate_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where tutor_id = #{userId}
+        and start_time &gt;= #{startTime} and end_time &lt;= #{endTime}
+    </select>
+    <select id="searchVacateByType" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join tutor_vacate as t on t.vacate_id = v.vacate_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where tutor_id = #{userId} and type = #{type}
+    </select>
+    <update id="updatePwd" parameterType="Map">
+        update tutor
+        set pwd = #{newPwd}
+        where tutor_id = #{userId}
+    </update>
+    <select id="searchVacate" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join tutor_vacate as t on t.vacate_id = v.vacate_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        <where>
+            t.tutor_id = #{userId} and sv.status != -2
+            <if test="term != null and term != ''">
+                and term = #{term}
+            </if>
+            <if test="start != null and start != '' and end != null and end != ''">
+                and start_time &gt;= #{start} and end_time &lt;= #{end}
+            </if>
+            <if test="type != null and type != ''">
+                and type = #{type}
+            </if>
+        </where>
+    </select>
+</mapper>

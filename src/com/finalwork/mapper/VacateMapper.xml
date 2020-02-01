@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.finalwork.mapper.VacateMapper">
+    <insert id="addVacate" parameterType="com.finalwork.po.Vacate">
+        insert into vacate (vacate_id,stu_id,term,submit_time,start_time,end_time,period,type,result,course_list)
+        values (#{vacate_id},#{stu_id},#{term},#{submit_time},#{start_time},#{end_time},#{period},#{type},#{result},#{course_list})
+    </insert>
+    <insert id="addStuVacate" parameterType="com.finalwork.po.StuVacate">
+        insert into stu_vacate (stu_id,vacate_id,status)
+        values (#{stu_id},#{vacate_id},#{status})
+    </insert>
+    <insert id="addTutorVacate" parameterType="com.finalwork.po.TutorVacate">
+        insert into tutor_vacate (tutor_id, vacate_id, status)
+        values (#{tutor_id},#{vacate_id},#{status})
+    </insert>
+    <insert id="addEduVacate" parameterType="com.finalwork.po.EduVacate">
+        insert into edu_vacate (edu_id, vacate_id, status)
+        values (#{edu_id},#{vacate_id},#{status})
+    </insert>
+    <select id="findOneVacateById" parameterType="String" resultType="com.finalwork.po.Vacate">
+        select vacate_id,stu_id,term,submit_time,start_time,end_time,period,type,result,course_list
+        from vacate
+        where vacate_id = #{id}
+    </select>
+    <select id="findStuAudit" parameterType="String" resultType="com.finalwork.po.StuVacate">
+        select * from stu_vacate
+        where stu_id = #{stuId} and status = 0
+    </select>
+    <select id="findVacateByUUID" parameterType="List" resultType="com.finalwork.po.Vacate">
+        select vacate_id,stu_id,term,submit_time,start_time,end_time,period,type,result,course_list
+        from vacate
+        where vacate_id in
+        <foreach collection="list" item="uuid" open="(" separator="," close=")">
+            #{uuid}
+        </foreach>
+    </select>
+    <select id="findVacateInfo" parameterType="List" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,status
+        from vacate as v
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where v.vacate_id in
+        <foreach collection="list" item="vacateVO" open="(" separator="," close=")">
+            #{vacateVO.vacate.vacate_id}
+        </foreach>
+    </select>
+    <select id="findStuVacateWithStatus" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where status = #{status} and v.stu_id = #{userId}
+    </select>
+    <select id="findTutorVacateWithStatus" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join tutor_vacate as t on t.vacate_id = v.vacate_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where t.status = #{status} and tutor_id = #{userId}
+    </select>
+    <select id="findEduVacateWithStatus" parameterType="Map" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join edu_vacate as t on t.vacate_id = v.vacate_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        join student as s on s.stu_id = v.stu_id
+        where t.status = #{status}
+    </select>
+    <resultMap id="vacateVOMap" type="com.finalwork.po.VacateVO">
+        <id property="vacate.vacate_id" column="vacate_id"/>
+        <result property="vacate.stu_id" column="stu_id"/>
+        <result property="vacate.term" column="term"/>
+        <result property="vacate.submit_time" column="submit_time"/>
+        <result property="vacate.start_time" column="start_time"/>
+        <result property="vacate.end_time" column="end_time"/>
+        <result property="vacate.period" column="period"/>
+        <result property="vacate.type" column="type"/>
+        <result property="vacate.result" column="result"/>
+        <result property="vacate.course_list" column="course_list"/>
+    </resultMap>
+    <update id="updateStepById" parameterType="Map">
+        update vacate
+        set step = #{step}
+        where vacate_id = #{vacate_id}
+    </update>
+    <update id="updateTutorStatusById" parameterType="Map">
+        update tutor_vacate
+        set status = #{status}
+        where vacate_id = #{vacate_id}
+    </update>
+    <update id="updateStuStatusById" parameterType="Map">
+        update stu_vacate
+        set status = #{status}
+        where vacate_id = #{vacate_id}
+    </update>
+    <update id="updateEduStatusById" parameterType="Map">
+        update edu_vacate
+        set status = #{status}
+        where vacate_id = #{vacate_id}
+    </update>
+    <delete id="deleteTutorVacateById" parameterType="String">
+        delete from tutor_vacate
+        where vacate_id = #{id}
+    </delete>
+    <select id="findTrash" parameterType="String" resultMap="vacateVOMap">
+        select name,v.vacate_id,v.stu_id,term,submit_time,start_time,end_time,period,type,result,v.course_list,step,sv.status
+        from vacate as v
+        join student as s on s.stu_id = v.stu_id
+        join stu_vacate as sv on sv.vacate_id = v.vacate_id
+        where v.stu_id = #{id} and status = -2
+    </select>
+    <insert id="addTeacherVacate" parameterType="List">
+        insert into teacher_vacate
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.teacher_id},#{item.vacate_id},#{item.status})
+        </foreach>
+    </insert>
+</mapper>
