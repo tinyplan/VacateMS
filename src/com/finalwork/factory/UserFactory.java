@@ -14,7 +14,7 @@ public class UserFactory {
     }
 
     public static void register(String identity,UserService service){
-        Assert.notNull(identity,"identity can not be null");
+        //Assert.notNull(identity,"identity can not be null");
         services.put(identity,service);
     }
 }
